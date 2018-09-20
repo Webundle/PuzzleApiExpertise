@@ -1,0 +1,43 @@
+{
+	"name" : "webundle/puzzle-api-expertise",
+	"description" : "Puzzle Expertise API",
+	"type" : "symfony-bundle",
+	"authors" : [{
+			"name" : "AGNES Gnagne Cedric",
+			"email" : "cecenho55@gmail.com"
+		}
+	],
+	"keywords" : [
+		"puzzle api expertise"
+	],
+	"license" : "proprietary",
+	"require" : {
+		"php" : ">=5.5.9",
+		"doctrine/doctrine-bundle" : "^1.6",
+		"doctrine/orm" : "^2.5",
+		"guzzlehttp/guzzle" : "^6.3",
+		"incenteev/composer-parameter-handler" : "^2.0",
+		"sensio/distribution-bundle" : "^5.0.19",
+		"sensio/framework-extra-bundle" : "^5.0.0",
+		"symfony/assetic-bundle" : "^2.8",
+		"symfony/monolog-bundle" : "^3.1.0",
+		"symfony/polyfill-apcu" : "^1.0",
+		"symfony/swiftmailer-bundle" : "^2.6.4",
+		"symfony/symfony" : "3.4.*",
+		"twig/twig" : "^1.0||^2.0",
+		"webundle/pz-oauth2-server" : "^1.0",
+		"webundle/puzzle-api-media" : "^1.0",
+		"webundle/puzzle-api-user" : "^1.0"
+	},
+	"autoload" : {
+		"psr-0" : {
+			"Webundle\\Puzzle\\Api\\ExpertiseBundle" : ""
+		}
+	},
+	"target-dir" : "Webundle/Puzzle/Api/ExpertiseBundle",
+	"extra" : {
+		"branch-alias" : {
+			"dev-master" : "1.0-dev"
+		}
+	}
+}
