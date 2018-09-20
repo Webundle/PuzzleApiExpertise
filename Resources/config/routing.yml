@@ -9,3 +9,7 @@ expertise_partner:
 expertise_testimonial:
     type: rest
     resource: Puzzle\Api\ExpertiseBundle\Controller\TestimonialController
+
+expertise_service:
+    type: rest
+    resource: Puzzle\Api\ExpertiseBundle\Controller\ServiceController
