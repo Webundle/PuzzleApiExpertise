@@ -135,7 +135,7 @@ class ServiceController extends BaseFOSRestController
 	
 	/**
 	 * @FOS\RestBundle\Controller\Annotations\View()
-	 * @FOS\RestBundle\Controller\Annotations\("/services/{id}")
+	 * @FOS\RestBundle\Controller\Annotations\Get("/services/{id}")
 	 * @Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter("service", class="PuzzleApiExpertiseBundle:Service")
 	 */
 	public function deleteExpertiseServiceAction(Request $request, Service $service) {

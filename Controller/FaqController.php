@@ -52,7 +52,7 @@ class FaqController extends BaseFOSRestController
 	/**
 	 * @FOS\RestBundle\Controller\Annotations\View()
 	 * @FOS\RestBundle\Controller\Annotations\Get("/faqs/{id}")
-	 * @ParamConverter("faq", class="PuzzleApiExpertiseBundle:Faq")
+	 * @Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter("faq", class="PuzzleApiExpertiseBundle:Faq")
 	 */
 	public function getExpertiseFaqAction(Request $request, Faq $faq) {
 	    if ($faq->getCreatedBy()->getId() !== $this->getUser()->getId()) {
