@@ -1,0 +1,3 @@
+expertise_faq:
+    type: rest
+    resource: Puzzle\Api\ExpertiseBundle\Controller\FaqController
