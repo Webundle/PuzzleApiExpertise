@@ -5,3 +5,7 @@ expertise_faq:
 expertise_partner:
     type: rest
     resource: Puzzle\Api\ExpertiseBundle\Controller\PartnerController
+
+expertise_testimonial:
+    type: rest
+    resource: Puzzle\Api\ExpertiseBundle\Controller\TestimonialController
