@@ -80,7 +80,6 @@ class ServiceController extends BaseFOSRestController
 	    $service = Utils::setter(new Service(), $this->fields, $data);
 	    
 	    $em->persist($service);
-	    $em->flush();
 	    
 	    /* Service picture listener */
 	    if (isset($data['picture']) && $data['picture']){
@@ -92,6 +91,7 @@ class ServiceController extends BaseFOSRestController
 	        ]));
 	    }
 	    
+	    $em->flush();
 	    return $this->handleView(FormatUtil::formatView($request, ['resources' => $service]));
 	}
 	

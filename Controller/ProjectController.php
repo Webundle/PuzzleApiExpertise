@@ -83,7 +83,6 @@ class ProjectController extends BaseFOSRestController
 	    $project = Utils::setter(new Project(), $this->fields, $data);
 	    
 	    $em->persist($project);
-	    $em->flush();
 	    
 	    if (isset($data['picture']) && $data['picture']){
 	        $this->dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
@@ -93,6 +92,8 @@ class ProjectController extends BaseFOSRestController
 	            'closure'  => function($filename) use ($project){$project->setPicture($filename);}
 	        ]));
 	    }
+	    
+	    $em->flush();
 	    
 	    return $this->handleView(FormatUtil::formatView($request, ['resources' => $project]));
 	}

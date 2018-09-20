@@ -76,7 +76,6 @@ class TestimonialController extends BaseFOSRestController
 	    /** @var Doctrine\ORM\EntityManager $em */
 	    $em = $this->doctrine->getManager($this->connection);
 	    $em->persist($testimonial);
-	    $em->flush();
 	    
 	    if (isset($data['picture']) && $data['picture']){
 	        $this->dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
@@ -86,6 +85,8 @@ class TestimonialController extends BaseFOSRestController
 	            'closure'  => function($filename) use ($testimonial){$testimonial->setPicture($filename);}
 	        ]));
 	    }
+	    
+	    $em->flush();
 	    
 	    return $this->handleView(FormatUtil::formatView($request, ['resources' => $testimonial]));
 	}
