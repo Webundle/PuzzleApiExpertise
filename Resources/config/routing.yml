@@ -13,3 +13,7 @@ expertise_testimonial:
 expertise_service:
     type: rest
     resource: Puzzle\Api\ExpertiseBundle\Controller\ServiceController
+    
+expertise_project:
+    type: rest
+    resource: Puzzle\Api\ExpertiseBundle\Controller\ProjectController
