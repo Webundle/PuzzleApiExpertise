@@ -17,3 +17,7 @@ expertise_service:
 expertise_project:
     type: rest
     resource: Puzzle\Api\ExpertiseBundle\Controller\ProjectController
+
+expertise_staff:
+    type: rest
+    resource: Puzzle\Api\ExpertiseBundle\Controller\StaffController
