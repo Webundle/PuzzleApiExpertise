@@ -70,6 +70,14 @@ class Service
      * @JMS\Type("string")
      */
     private $shortDescription;
+
+    /**
+     * @ORM\Column(name="slug", type="string", length=255)
+     * @var string
+     * @JMS\Expose
+     * @JMS\Type("string")
+     */
+    protected $slug;
     
     /**
      * @ORM\Column(type="string", length=255, nullable=true)

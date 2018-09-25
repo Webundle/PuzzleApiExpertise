@@ -61,6 +61,14 @@ class Project
      * @JMS\Type("string")
      */
     private $shortDescription;
+
+    /**
+     * @ORM\Column(name="slug", type="string", length=255)
+     * @var string
+     * @JMS\Expose
+     * @JMS\Type("string")
+     */
+    protected $slug;
     
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -117,10 +125,6 @@ class Project
     
     public function getSluggableFields() {
         return [ 'name' ];
-    }
-    
-    public function generateSlugValue($values) {
-        return implode('-', $values);
     }
     
     public function setClient($client) : self {
