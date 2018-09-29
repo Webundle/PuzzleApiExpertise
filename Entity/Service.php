@@ -64,14 +64,6 @@ class Service
     ;
     
     /**
-     * @var string
-     * @ORM\Column(name="short_description", type="string", length=255, nullable=true)
-     * @JMS\Expose
-     * @JMS\Type("string")
-     */
-    private $shortDescription;
-
-    /**
      * @ORM\Column(name="slug", type="string", length=255)
      * @var string
      * @JMS\Expose
@@ -132,25 +124,7 @@ class Service
     public function getSluggableFields() {
         return [ 'name' ];
     }
-    
-    public function generateSlugValue($values) {
-        return implode('-', $values);
-    }
 	
-    /**
-     * @ORM\PrePersist()
-     * @ORM\PreUpdate()
-     */
-    public function setShortDescription() {
-        $this->shortDescription = strlen($this->description) > 100 ?
-        mb_strimwidth($this->description, 0, 100, '...') : $this->description;
-        return $this;
-    }
-    
-    public function getShortDescription() :?string {
-        return $this->shortDescription;
-    }
-   
     public function addProject(Project $project) : self {
         if ($this->projects === null ||$this->projects->contains($project) === false) {
             $this->projects->add($project);

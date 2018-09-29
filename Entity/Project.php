@@ -55,14 +55,6 @@ class Project
     ;
 
     /**
-     * @var string
-     * @ORM\Column(name="short_description", type="string", length=255, nullable=true)
-     * @JMS\Expose
-     * @JMS\Type("string")
-     */
-    private $shortDescription;
-
-    /**
      * @ORM\Column(name="slug", type="string", length=255)
      * @var string
      * @JMS\Expose

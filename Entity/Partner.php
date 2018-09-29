@@ -9,6 +9,7 @@ use Puzzle\OAuthServerBundle\Traits\PrimaryKeyable;
 use Knp\DoctrineBehaviors\Model\Blameable\Blameable;
 use Puzzle\OAuthServerBundle\Traits\Nameable;
 use Puzzle\OAuthServerBundle\Traits\Pictureable;
+use Knp\DoctrineBehaviors\Model\Timestampable\Timestampable;
 
 /**
  * Expertise Partner
@@ -28,6 +29,7 @@ use Puzzle\OAuthServerBundle\Traits\Pictureable;
 class Partner
 {
     use PrimaryKeyable,
+        Timestampable,
         Nameable,
         Pictureable,
         Blameable;

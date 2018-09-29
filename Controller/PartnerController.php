@@ -2,18 +2,13 @@
 
 namespace Puzzle\Api\ExpertiseBundle\Controller;
 
-use JMS\Serializer\SerializerInterface;
 use Puzzle\Api\ExpertiseBundle\Entity\Partner;
 use Puzzle\Api\MediaBundle\PuzzleApiMediaEvents;
 use Puzzle\Api\MediaBundle\Event\FileEvent;
 use Puzzle\Api\MediaBundle\Util\MediaUtil;
 use Puzzle\OAuthServerBundle\Controller\BaseFOSRestController;
-use Puzzle\OAuthServerBundle\Service\ErrorFactory;
-use Puzzle\OAuthServerBundle\Service\Repository;
 use Puzzle\OAuthServerBundle\Service\Utils;
 use Puzzle\OAuthServerBundle\Util\FormatUtil;
-use Symfony\Bridge\Doctrine\RegistryInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -23,21 +18,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PartnerController extends BaseFOSRestController
 {
-    /**
-     * @param RegistryInterface         $doctrine
-     * @param Repository                $repository
-     * @param SerializerInterface       $serializer
-     * @param EventDispatcherInterface  $dispatcher
-     * @param ErrorFactory              $errorFactory
-     */
-    public function __construct(
-        RegistryInterface $doctrine,
-        Repository $repository,
-        SerializerInterface $serializer,
-        EventDispatcherInterface $dispatcher,
-        ErrorFactory $errorFactory
-    ){
-        parent::__construct($doctrine, $repository, $serializer, $dispatcher, $errorFactory);
+    public function __construct(){
+        parent::__construct();
         $this->fields = ['name', 'location'];
     }
     
@@ -47,7 +29,10 @@ class PartnerController extends BaseFOSRestController
 	 */
 	public function getExpertisePartnersAction(Request $request) {
 	    $query = Utils::blameRequestQuery($request->query, $this->getUser());
-	    $response = $this->repository->filter($query, Partner::class, $this->connection);
+	    
+	    /** @var Puzzle\OAuthServerBundle\Service\Repository $repository */
+	    $repository = $this->get('papis.repository');
+	    $response = $repository->filter($query, Partner::class, $this->connection);
 	    
 	    return $this->handleView(FormatUtil::formatView($request, $response));
 	}
@@ -59,10 +44,12 @@ class PartnerController extends BaseFOSRestController
 	 */
 	public function getExpertisePartnerAction(Request $request, Partner $partner) {
 	    if ($partner->getCreatedBy()->getId() !== $this->getUser()->getId()) {
-	        return $this->handleView($this->errorFactory->accessDenied($request));
+	        /** @var Puzzle\OAuthServerBundle\Service\ErrorFactory $errorFactory */
+	        $errorFactory = $this->get('papis.error_factory');
+	        return $this->handleView($errorFactory->accessDenied($request));
 	    }
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['resources' => $partner]));
+	    return $this->handleView(FormatUtil::formatView($request, $partner));
 	}
 	
 	/**
@@ -71,14 +58,18 @@ class PartnerController extends BaseFOSRestController
 	 */
 	public function postExpertisePartnerAction(Request $request) {
 	    $data = $request->request->all();
-	    /** @var Partner $partner */
+	    
+	    /** @var Puzzle\Api\ExpertiseBundle\Entity\Partner $partner */
 	    $partner = Utils::setter(new Partner(), $this->fields, $data);
+	    
 	    /** @var Doctrine\ORM\EntityManager $em */
-	    $em = $this->doctrine->getManager($this->connection);
+	    $em = $this->get('doctrine')->getManager($this->connection);
 	    $em->persist($partner);
 	    
-	    if (isset($data['picture']) && $data['picture']){
-	        $this->dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
+	    if (isset($data['picture']) && $data['picture']) {
+	        /** @var Symfony\Component\EventDispatcher\EventDispatcher $dispatcher */
+	        $dispatcher = $this->get('event_dispatcher');
+	        $dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
 	            'path'     => $data['picture'],
 	            'folder'   => $data['uploadDir'] ?? MediaUtil::extractFolderNameFromClass(Partner::class),
 	            'user'     => $this->getUser(),
@@ -88,7 +79,7 @@ class PartnerController extends BaseFOSRestController
 	    
 	    $em->flush();
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['resources' => $partner]));
+	    return $this->handleView(FormatUtil::formatView($request, $partner));
 	}
 	
 	/**
@@ -100,15 +91,20 @@ class PartnerController extends BaseFOSRestController
 	    $user = $this->getUser();
 	    
 	    if ($partner->getCreatedBy()->getId() !== $user->getId()) {
-	        return $this->handleView($this->errorFactory->badRequest($request));
+	        /** @var Puzzle\OAuthServerBundle\Service\ErrorFactory $errorFactory */
+	        $errorFactory = $this->get('papis.error_factory');
+	        return $this->handleView($errorFactory->badRequest($request));
 	    }
 	    
 	    $data = $request->request->all();
-	    /** @var Partner $partner */
+	    
+	    /** @var Puzzle\Api\ExpertiseBundle\Entity\Partner $partner */
 	    $partner = Utils::setter($partner, $this->fields, $data);
 	    
 	    if (isset($data['picture']) && $data['picture'] !== $partner->getPicture()) {
-	        $this->dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
+	        /** @var Symfony\Component\EventDispatcher\EventDispatcher $dispatcher */
+	        $dispatcher = $this->get('event_dispatcher');
+	        $dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
 	            'path'     => $data['picture'],
 	            'folder'   => $data['uploadDir'] ?? MediaUtil::extractFolderNameFromClass(Partner::class),
 	            'user'     => $this->getUser(),
@@ -117,10 +113,10 @@ class PartnerController extends BaseFOSRestController
 	    }
 	    
 	    /** @var Doctrine\ORM\EntityManager $em */
-	    $em = $this->doctrine->getManager($this->connection);
+	    $em = $this->get('doctrine')->getManager($this->connection);
 	    $em->flush();
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['code' => 200]));
+	    return $this->handleView(FormatUtil::formatView($request, $partner));
 	}
 	
 	/**
@@ -130,13 +126,15 @@ class PartnerController extends BaseFOSRestController
 	 */
 	public function deleteExpertisePartnerAction(Request $request, Partner $partner) {
 	    if ($partner->getCreatedBy()->getId() !== $this->getUser()->getId()) {
-	        return $this->handleView($this->errorFactory->badRequest($request));
+	        /** @var Puzzle\OAuthServerBundle\Service\ErrorFactory $errorFactory */
+	        $errorFactory = $this->get('papis.error_factory');
+	        return $this->handleView($errorFactory->badRequest($request));
 	    }
 	    
-	    $em = $this->doctrine->getManager($this->connection);
+	    $em = $this->get('doctrine')->getManager($this->connection);
 	    $em->remove($partner);
 	    $em->flush();
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['code' => 200]));
+	    return $this->handleView(FormatUtil::formatView($request, null, 204));
 	}
 }

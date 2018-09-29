@@ -8,6 +8,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
 use Puzzle\OAuthServerBundle\Traits\PrimaryKeyable;
 use Knp\DoctrineBehaviors\Model\Blameable\Blameable;
 use Puzzle\OAuthServerBundle\Traits\Pictureable;
+use Knp\DoctrineBehaviors\Model\Timestampable\Timestampable;
 
 /**
  * Expertise Testimonial
@@ -28,6 +29,7 @@ class Testimonial
 {
     use PrimaryKeyable,
         Pictureable,
+        Timestampable,
         Blameable;
     
     /**

@@ -8,6 +8,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
 use Puzzle\OAuthServerBundle\Traits\PrimaryKeyable;
 use Puzzle\OAuthServerBundle\Traits\Nameable;
 use Knp\DoctrineBehaviors\Model\Blameable\Blameable;
+use Knp\DoctrineBehaviors\Model\Timestampable\Timestampable;
 
 /**
  * Expertise Faq
@@ -26,7 +27,9 @@ use Knp\DoctrineBehaviors\Model\Blameable\Blameable;
  */
 class Faq
 {
-    use PrimaryKeyable, Blameable;
+    use PrimaryKeyable, 
+        Timestampable,
+        Blameable;
     
     /**
      * @var string

@@ -2,15 +2,10 @@
 
 namespace Puzzle\Api\ExpertiseBundle\Controller;
 
-use JMS\Serializer\SerializerInterface;
 use Puzzle\Api\ExpertiseBundle\Entity\Faq;
 use Puzzle\OAuthServerBundle\Controller\BaseFOSRestController;
-use Puzzle\OAuthServerBundle\Service\ErrorFactory;
-use Puzzle\OAuthServerBundle\Service\Repository;
 use Puzzle\OAuthServerBundle\Service\Utils;
 use Puzzle\OAuthServerBundle\Util\FormatUtil;
-use Symfony\Bridge\Doctrine\RegistryInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -20,21 +15,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class FaqController extends BaseFOSRestController
 {
-    /**
-     * @param RegistryInterface         $doctrine
-     * @param Repository                $repository
-     * @param SerializerInterface       $serializer
-     * @param EventDispatcherInterface  $dispatcher
-     * @param ErrorFactory              $errorFactory
-     */
-    public function __construct(
-        RegistryInterface $doctrine,
-        Repository $repository,
-        SerializerInterface $serializer,
-        EventDispatcherInterface $dispatcher,
-        ErrorFactory $errorFactory
-    ){
-        parent::__construct($doctrine, $repository, $serializer, $dispatcher, $errorFactory);
+    public function __construct(){
+        parent::__construct();
         $this->fields = ['question', 'answer'];
     }
     
@@ -44,7 +26,10 @@ class FaqController extends BaseFOSRestController
 	 */
 	public function getExpertiseFaqsAction(Request $request) {
 	    $query = Utils::blameRequestQuery($request->query, $this->getUser());
-	    $response = $this->repository->filter($query, Faq::class, $this->connection);
+	    
+	    /** @var Puzzle\OAuthServerBundle\Service\Repository $repository */
+	    $repository = $this->get('papis.repository');
+	    $response = $repository->filter($query, Faq::class, $this->connection);
 	    
 	    return $this->handleView(FormatUtil::formatView($request, $response));
 	}
@@ -56,10 +41,12 @@ class FaqController extends BaseFOSRestController
 	 */
 	public function getExpertiseFaqAction(Request $request, Faq $faq) {
 	    if ($faq->getCreatedBy()->getId() !== $this->getUser()->getId()) {
-	        return $this->handleView($this->errorFactory->accessDenied($request));
+	        /** @var Puzzle\OAuthServerBundle\Service\ErrorFactory $errorFactory */
+	        $errorFactory = $this->get('papis.error_factory');
+	        return $this->handleView($errorFactory->accessDenied($request));
 	    }
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['resources' => $faq]));
+	    return $this->handleView(FormatUtil::formatView($request, $faq));
 	}
 	
 	/**
@@ -68,14 +55,16 @@ class FaqController extends BaseFOSRestController
 	 */
 	public function postExpertiseFaqAction(Request $request) {
 	    $data = $request->request->all();
-	    /** @var Faq $faq */
+	    
+	    /** @var Puzzle\Api\ExpertiseBundle\Entity\Faq $faq */
 	    $faq = Utils::setter(new Faq(), $this->fields, $data);
+	    
 	    /** @var Doctrine\ORM\EntityManager $em */
-	    $em = $this->doctrine->getManager($this->connection);
+	    $em = $this->get('doctrine')->getManager($this->connection);
 	    $em->persist($faq);
 	    $em->flush();
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['resources' => $faq]));
+	    return $this->handleView(FormatUtil::formatView($request, $faq));
 	}
 	
 	/**
@@ -87,17 +76,21 @@ class FaqController extends BaseFOSRestController
 	    $user = $this->getUser();
 	    
 	    if ($faq->getCreatedBy()->getId() !== $user->getId()) {
-	        return $this->handleView($this->errorFactory->badRequest($request));
+	        /** @var Puzzle\OAuthServerBundle\Service\ErrorFactory $errorFactory */
+	        $errorFactory = $this->get('papis.error_factory');
+	        return $this->handleView($errorFactory->badRequest($request));
 	    }
 	    
 	    $data = $request->request->all();
-	    /** @var Faq $faq */
+	    
+	    /** @var Puzzle\Api\ExpertiseBundle\Entity\Faq $faq */
 	    $faq = Utils::setter($faq, $this->fields, $data);
+	    
 	    /** @var Doctrine\ORM\EntityManager $em */
-	    $em = $this->doctrine->getManager($this->connection);
+	    $em = $this->get('doctrine')->getManager($this->connection);
 	    $em->flush();
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['code' => 200]));
+	    return $this->handleView(FormatUtil::formatView($request, $faq));
 	}
 	
 	/**
@@ -107,14 +100,16 @@ class FaqController extends BaseFOSRestController
 	 */
 	public function deleteExpertiseFaqAction(Request $request, Faq $faq) {
 	    if ($faq->getCreatedBy()->getId() !== $this->getUser()->getId()) {
-	        return $this->handleView($this->errorFactory->badRequest($request));
+	        /** @var Puzzle\OAuthServerBundle\Service\ErrorFactory $errorFactory */
+	        $errorFactory = $this->get('papis.error_factory');
+	        return $this->handleView($errorFactory->badRequest($request));
 	    }
 	    
 	    /** @var Doctrine\ORM\EntityManager $em */
-	    $em = $this->doctrine->getManager($this->connection);
+	    $em = $this->get('doctrine')->getManager($this->connection);
 	    $em->remove($faq);
 	    $em->flush();
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['code' => 200]));
+	    return $this->handleView(FormatUtil::formatView($request, null, 204));
 	}
 }

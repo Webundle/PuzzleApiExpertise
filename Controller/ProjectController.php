@@ -2,19 +2,14 @@
 
 namespace Puzzle\Api\ExpertiseBundle\Controller;
 
-use JMS\Serializer\SerializerInterface;
 use Puzzle\Api\ExpertiseBundle\Entity\Project;
 use Puzzle\Api\ExpertiseBundle\Entity\Service;
 use Puzzle\Api\MediaBundle\PuzzleApiMediaEvents;
 use Puzzle\Api\MediaBundle\Event\FileEvent;
 use Puzzle\Api\MediaBundle\Util\MediaUtil;
 use Puzzle\OAuthServerBundle\Controller\BaseFOSRestController;
-use Puzzle\OAuthServerBundle\Service\ErrorFactory;
-use Puzzle\OAuthServerBundle\Service\Repository;
 use Puzzle\OAuthServerBundle\Service\Utils;
 use Puzzle\OAuthServerBundle\Util\FormatUtil;
-use Symfony\Bridge\Doctrine\RegistryInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -24,21 +19,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class ProjectController extends BaseFOSRestController
 {
-    /**
-     * @param RegistryInterface         $doctrine
-     * @param Repository                $repository
-     * @param SerializerInterface       $serializer
-     * @param EventDispatcherInterface  $dispatcher
-     * @param ErrorFactory              $errorFactory
-     */
-    public function __construct(
-        RegistryInterface $doctrine,
-        Repository $repository,
-        SerializerInterface $serializer,
-        EventDispatcherInterface $dispatcher,
-        ErrorFactory $errorFactory
-    ){
-        parent::__construct($doctrine, $repository, $serializer, $dispatcher, $errorFactory);
+    public function __construct(){
+        parent::__construct();
         $this->fields = ['name', 'location', 'service', 'client', 'startedAt', 'endedAt', 'description'];
     }
     
@@ -48,7 +30,10 @@ class ProjectController extends BaseFOSRestController
 	 */
 	public function getExpertiseProjectsAction(Request $request) {
 	    $query = Utils::blameRequestQuery($request->query, $this->getUser());
-	    $response = $this->repository->filter($query, Project::class, $this->connection);
+	    
+	    /** @var Puzzle\OAuthServerBundle\Service\Repository $repository */
+	    $repository = $this->get('papis.repository');
+	    $response = $repository->filter($query, Project::class, $this->connection);
 	    
 	    return $this->handleView(FormatUtil::formatView($request, $response));
 	}
@@ -60,10 +45,12 @@ class ProjectController extends BaseFOSRestController
 	 */
 	public function getExpertiseProjectAction(Request $request, Project $project) {
 	    if ($project->getCreatedBy()->getId() !== $this->getUser()->getId()) {
-	        return $this->handleView($this->errorFactory->accessDenied($request));
+	        /** @var Puzzle\OAuthServerBundle\Service\ErrorFactory $errorFactory */
+	        $errorFactory = $this->get('papis.error_factory');
+	        return $this->handleView($errorFactory->accessDenied($request));
 	    }
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['resources' => $project]));
+	    return $this->handleView(FormatUtil::formatView($request, $project));
 	}
 	
 	/**
@@ -72,7 +59,7 @@ class ProjectController extends BaseFOSRestController
 	 */
 	public function postExpertiseProjectAction(Request $request) {
 	    /** @var Doctrine\ORM\EntityManager $em */
-	    $em = $this->doctrine->getManager($this->connection);
+	    $em = $this->get('doctrine')->getManager($this->connection);
 	    
 	    $data = $request->request->all();
 	    $data['service'] = $em->getRepository(Service::class)->find($data['service']);
@@ -84,8 +71,10 @@ class ProjectController extends BaseFOSRestController
 	    
 	    $em->persist($project);
 	    
-	    if (isset($data['picture']) && $data['picture']){
-	        $this->dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
+	    if (isset($data['picture']) && $data['picture']) {
+	        /** @var Symfony\Component\EventDispatcher\EventDispatcher $dispatcher */
+	        $dispatcher = $this->get('event_dispatcher');
+	        $dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
 	            'path'     => $data['picture'],
 	            'folder'   => $data['uploadDir'] ?? MediaUtil::extractFolderNameFromClass(Project::class),
 	            'user'     => $this->getUser(),
@@ -95,7 +84,7 @@ class ProjectController extends BaseFOSRestController
 	    
 	    $em->flush();
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['resources' => $project]));
+	    return $this->handleView(FormatUtil::formatView($request, $project));
 	}
 	
 	/**
@@ -107,11 +96,13 @@ class ProjectController extends BaseFOSRestController
 	    $user = $this->getUser();
 	    
 	    if ($project->getCreatedBy()->getId() !== $user->getId()) {
-	        return $this->handleView($this->errorFactory->badRequest($request));
+	        /** @var Puzzle\OAuthServerBundle\Service\ErrorFactory $errorFactory */
+	        $errorFactory = $this->get('papis.error_factory');
+	        return $this->handleView($errorFactory->badRequest($request));
 	    }
 	    
 	    /** @var Doctrine\ORM\EntityManager $em */
-	    $em = $this->doctrine->getManager($this->connection);
+	    $em = $this->get('doctrine')->getManager($this->connection);
 	    
 	    $data = $request->request->all();
 	    $data['startedAt'] = is_string($data['startedAt']) ? new \DateTime($data['startedAt']) : $data['startedAt'];
@@ -125,7 +116,9 @@ class ProjectController extends BaseFOSRestController
 	    $project = Utils::setter($project, $this->fields, $data);
 	    
 	    if (isset($data['picture']) && $data['picture'] !== $project->getPicture()) {
-	        $this->dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
+	        /** @var Symfony\Component\EventDispatcher\EventDispatcher $dispatcher */
+	        $dispatcher = $this->get('event_dispatcher');
+	        $dispatcher->dispatch(PuzzleApiMediaEvents::MEDIA_COPY_FILE, new FileEvent([
 	            'path'     => $data['picture'],
 	            'folder'   => $data['uploadDir'] ?? MediaUtil::extractFolderNameFromClass(Project::class),
 	            'user'     => $this->getUser(),
@@ -135,7 +128,7 @@ class ProjectController extends BaseFOSRestController
 	    
 	    $em->flush();
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['code' => 200]));
+	    return $this->handleView(FormatUtil::formatView($request, $project));
 	}
 	
 	/**
@@ -145,13 +138,15 @@ class ProjectController extends BaseFOSRestController
 	 */
 	public function deleteExpertiseProjectAction(Request $request, Project $project) {
 	    if ($project->getCreatedBy()->getId() !== $this->getUser()->getId()) {
-	        return $this->handleView($this->errorFactory->badRequest($request));
+	        /** @var Puzzle\OAuthServerBundle\Service\ErrorFactory $errorFactory */
+	        $errorFactory = $this->get('papis.error_factory');
+	        return $this->handleView($errorFactory->badRequest($request));
 	    }
 	    
-	    $em = $this->doctrine->getManager($this->connection);
+	    $em = $this->get('doctrine')->getManager($this->connection);
 	    $em->remove($project);
 	    $em->flush();
 	    
-	    return $this->handleView(FormatUtil::formatView($request, ['code' => 200]));
+	    return $this->handleView(FormatUtil::formatView($request, null, 204));
 	}
 }

@@ -10,6 +10,7 @@ use Knp\DoctrineBehaviors\Model\Blameable\Blameable;
 use Puzzle\OAuthServerBundle\Traits\Taggable;
 use Doctrine\Common\Collections\Collection;
 use Puzzle\OAuthServerBundle\Traits\Pictureable;
+use Knp\DoctrineBehaviors\Model\Timestampable\Timestampable;
 
 /**
  * Expertise Staff
@@ -39,6 +40,7 @@ class Staff
 {
     use PrimaryKeyable,
         Pictureable,
+        Timestampable,
         Blameable;
     
     /**

@@ -1,19 +1,4 @@
 services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-        public: false
-        
-    # Service
-    Puzzle\Api\ExpertiseBundle\:
-        resource: '%kernel.project_dir%/vendor/webundle/puzzle-api-expertise/*'
-        exclude: '%kernel.project_dir%/vendor/webundle/puzzle-api-expertise/{Entity,Repository,Tests}'
-    
-    # Controller
-    Puzzle\Api\ExpertiseBundle\Controller\:
-        resource: '%kernel.project_dir%/vendor/webundle/puzzle-api-expertise/Controller'
-        public: true
-        tags: ['controller.service_arguments']
-    
+
         
     
